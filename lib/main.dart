@@ -44,12 +44,12 @@ class TheMovieBuffApp extends StatelessWidget {
               foregroundColor: Colors.white,
               titleTextStyle: TextStyle(
                 color: Colors.white,
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Ubuntu',
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Quicksand',
               ),
             ),
-            fontFamily: 'Ubuntu',
+            fontFamily: 'Quicksand',
           ),
           routerConfig: AppRouter.generateRoutes(),
         );

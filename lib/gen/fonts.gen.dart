@@ -11,6 +11,6 @@
 class FontFamily {
   FontFamily._();
 
-  /// Font family: Ubuntu
-  static const String ubuntu = 'Ubuntu';
+  /// Font family: Quicksand
+  static const String quicksand = 'Quicksand';
 }

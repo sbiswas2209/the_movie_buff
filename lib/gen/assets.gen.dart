@@ -18,8 +18,12 @@ class $AssetsImagesGen {
   AssetGenImage get backdropPlaceholder =>
       const AssetGenImage('assets/images/backdrop_placeholder.png');
 
+  /// File path: assets/images/poster_placeholder.png
+  AssetGenImage get posterPlaceholder =>
+      const AssetGenImage('assets/images/poster_placeholder.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [backdropPlaceholder];
+  List<AssetGenImage> get values => [backdropPlaceholder, posterPlaceholder];
 }
 
 class Assets {

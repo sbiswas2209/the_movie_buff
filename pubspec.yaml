@@ -27,6 +27,7 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer_animation: ^2.2.2
   easy_debounce: ^2.0.3
+  jiffy: ^6.4.3
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -49,15 +50,15 @@ flutter:
     - .env
     - assets/images/
   fonts:
-    - family: Ubuntu
+    - family: Quicksand
       fonts:
-        - asset: assets/fonts/Ubuntu-Regular.ttf
-        - asset: assets/fonts/Ubuntu-Medium.ttf
+        - asset: assets/fonts/Quicksand-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Quicksand-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Quicksand-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Ubuntu-Bold.ttf
+        - asset: assets/fonts/Quicksand-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Quicksand-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Ubuntu-Italic.ttf
-          style: italic
-        - asset: assets/fonts/Ubuntu-BoldItalic.ttf
-          weight: 700
-          style: italic

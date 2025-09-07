@@ -8,6 +8,7 @@ import 'package:the_movie_buff/data/remote/genre_item.dart';
 import 'package:the_movie_buff/data/remote/movie.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_cubit.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_state.dart';
+import 'package:the_movie_buff/src/movies/widgets/now_playing_card.dart';
 import 'package:the_movie_buff/src/movies/widgets/popular_movie_card.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,9 +19,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  PageController _popularMoviesPageController = PageController(
-    viewportFraction: 0.8,
+  final PageController _popularMoviesPageController = PageController(
+    keepPage: true,
   );
+
+  // Main scroll controller for the entire ListView
+  final ScrollController _mainScrollController = ScrollController();
   bool _hasFetchedPopularMovies = false;
 
   Future<void> _fetchPopularMovies() async {
@@ -33,6 +37,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _setupListeners() {
+    _mainScrollController.addListener(() {
+      if (mounted) {
+        final scrollPosition = _mainScrollController.position.pixels;
+        final maxScrollExtent = _mainScrollController.position.maxScrollExtent;
+
+        if (scrollPosition >= (maxScrollExtent * 0.8)) {
+          _fetchNowPlayingMovies();
+        }
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,8 +59,16 @@ class _HomePageState extends State<HomePage> {
         _hasFetchedPopularMovies = true;
         await _fetchPopularMovies();
         await _fetchNowPlayingMovies();
+        _setupListeners();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _popularMoviesPageController.dispose();
+    _mainScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,17 +76,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("The Movie Buff"),
-        centerTitle: false,
+        centerTitle: true,
         elevation: 0,
       ),
       body: ListView(
+        controller: _mainScrollController,
         shrinkWrap: true,
         children: [
-          SizedBox(height: 10.h),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Text("Popular Movies Now", style: kHeading1.bold),
-          ),
           SizedBox(height: 12.h),
           BlocBuilder<MoviesCubit, MoviesState>(
             buildWhen: (previous, current) =>
@@ -71,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                 previous.isFetchingPopular != current.isFetchingPopular,
             builder: (context, state) {
               if (state.popularMovies == null) {
-                return Center(child: CircularProgressIndicator());
+                return PopularMovieCard.shimmer();
               } else if (state.popularMovies!.isEmpty) {
                 return Center(child: Text("No popular movies found"));
               } else {
@@ -81,8 +102,8 @@ class _HomePageState extends State<HomePage> {
           ),
           SizedBox(height: 12.h),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Text("Now Playing", style: kHeading1.bold),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
+            child: Text("Now Playing", style: kHeading2.bold),
           ),
           BlocBuilder<MoviesCubit, MoviesState>(
             buildWhen: (previous, current) =>
@@ -92,11 +113,11 @@ class _HomePageState extends State<HomePage> {
                 previous.isFetchingNowPlaying != current.isFetchingNowPlaying,
             builder: (context, state) {
               if (state.nowPlayingMovies == null) {
-                return Center(child: CircularProgressIndicator());
+                return NowPlayingCard.shimmer();
               } else if (state.nowPlayingMovies!.isEmpty) {
                 return Center(child: Text("No movies playing currently"));
               } else {
-                return _buildNowPlayingGrid(state.nowPlayingMovies!);
+                return _buildNowPlayingGrid(state.nowPlayingMovies!, state);
               }
             },
           ),
@@ -112,45 +133,70 @@ class _HomePageState extends State<HomePage> {
         controller: _popularMoviesPageController,
         itemCount: movies.length,
         onPageChanged: (page) {
-          if (page >= movies.length - 1) {
+          // Trigger pagination when approaching the end
+          if (page >= movies.length - 2 &&
+              !context.read<MoviesCubit>().state.isFetchingPopular &&
+              !context.read<MoviesCubit>().state.hasReachedPopularMoviesMax) {
             context.read<MoviesCubit>().fetchPopularMovies();
           }
         },
         itemBuilder: (context, index) {
           final movie = movies[index];
-          return PopularMovieCard(
-            title: movie.title,
-            imagePath: movie.backdropPath,
-            onPressed: () {},
-            genres: movie.genreIds
-                .map<GenreItem>(
-                  (e) => ConfigService.instance.genres.firstWhere(
-                    (g) => g.id == e,
-                    orElse: () => GenreItem(id: -1, name: ''),
-                  ),
-                )
-                .where((e) => e.id != -1)
-                .map((e) => e.name)
-                .toList(),
-            rating: movie.voteAverage,
-            ratings: movie.voteCount,
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: PopularMovieCard(
+              title: movie.title,
+              imagePath: movie.backdropPath,
+              onPressed: () {},
+              genres: movie.genreIds
+                  .map<GenreItem>(
+                    (e) => ConfigService.instance.genres.firstWhere(
+                      (g) => g.id == e,
+                      orElse: () => GenreItem(id: -1, name: ''),
+                    ),
+                  )
+                  .where((e) => e.id != -1)
+                  .map((e) => e.name)
+                  .toList(),
+              releaseDate: movie.releaseDate,
+              voteAverage: movie.voteAverage,
+              voteCount: movie.voteCount,
+              adult: movie.adult,
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildNowPlayingGrid(List<Movie> movies) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+  Widget _buildNowPlayingGrid(List<Movie> movies, MoviesState state) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.7,
+          crossAxisSpacing: 8.w,
+          mainAxisSpacing: 8.h,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        itemCount: movies.length + (state.isFetchingNowPlaying ? 2 : 0),
+        itemBuilder: (context, index) {
+          if (index >= movies.length) {
+            return NowPlayingCard.shimmer();
+          }
+
+          final movie = movies[index];
+          return NowPlayingCard(
+            title: movie.title,
+            voteAverage: movie.voteAverage,
+            posterPath: movie.posterPath,
+            adult: movie.adult,
+          );
+        },
       ),
-      itemCount: movies.length,
-      itemBuilder: (context, index) {
-        return Container(child: Text(movies[index].title));
-      },
     );
   }
 }
