@@ -38,10 +38,8 @@ jobs:
         run: gem install fastlane
 
       - name: Build AAB with Fastlane
-        run:
-          cd android
-          fastlane release_aab
-          cd ..
+        run: fastlane release_aab
+        working-directory: android
 
       - name: Find generated AAB
         id: upload
