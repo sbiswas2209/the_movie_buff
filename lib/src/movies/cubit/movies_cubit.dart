@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bloc/bloc.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:the_movie_buff/data/remote/movie.dart';
+import 'package:the_movie_buff/data/remote/movie_cast.dart';
 import 'package:the_movie_buff/data/remote/movie_detail.dart';
+import 'package:the_movie_buff/data/remote/movie_watch_providers.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_repository.dart';
 
 import 'movies_state.dart';
@@ -182,5 +186,113 @@ class MoviesCubit extends Cubit<MoviesState> {
       emit(state.copyWith(errorMessage: "Failed to fetch movie details"));
       return (false, null);
     }
+  }
+
+  Future<CountryWatchProvider?> fetchWatchProviders(int? movieId) async {
+    if (movieId == null) {
+      emit(state.copyWith(errorMessage: "Invalid movie ID"));
+      return null;
+    }
+    try {
+      final response = await moviesRepository.getWatchProviders(movieId);
+      final currentCountryCode = PlatformDispatcher.instance.locale.countryCode;
+      print("Country Code : $currentCountryCode");
+      if (currentCountryCode != null &&
+          response.results.containsKey(currentCountryCode)) {
+        return response.results[currentCountryCode];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Failed to fetch watch providers"));
+      return null;
+    }
+  }
+
+  Future<List<CastMember>> fetchCast(int movieId) async {
+    try {
+      return (await moviesRepository.getCast(movieId)).cast;
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Failed to fetch movie cast"));
+      return [];
+    }
+  }
+
+  void searchMovies(String query, {bool includeAdult = true}) async {
+    try {
+      emit(state.copyWith(isSearching: true));
+      if (query.isEmpty) {
+        emit(state.copyWith(searchResults: null, isSearching: false));
+        return;
+      }
+      EasyDebounce.debounce(
+        'search',
+        const Duration(milliseconds: 300),
+        () async {
+          final response = await moviesRepository.getSearchMovies(
+            query,
+            1,
+            includeAdult: includeAdult,
+          );
+
+          emit(state.copyWith(searchResults: response, isSearching: false));
+        },
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          errorMessage: "Failed to search movies",
+          searchResults: null,
+          isSearching: false,
+        ),
+      );
+    }
+  }
+
+  void loadWatchlist() async {
+    try {
+      if (state.watchlist != null) return;
+      final watchlist = await moviesRepository.getWatchlist();
+      emit(state.copyWith(watchlist: watchlist));
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Failed to load watchlist"));
+    }
+  }
+
+  void addMovieToWatchlist(int movieId) async {
+    try {
+      final (_, movie) = await fetchMovieDetails(movieId);
+      if (movie != null) {
+        final isAdded = await moviesRepository.addToWatchlist(
+          Movie.fromMovieDetail(movie),
+        );
+        if (isAdded > 0) {
+          final updatedWatchlist = List<Movie>.from(state.watchlist ?? []);
+          updatedWatchlist.add(Movie.fromMovieDetail(movie));
+          emit(state.copyWith(watchlist: updatedWatchlist));
+        }
+      }
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Failed to add movie to watchlist"));
+    }
+  }
+
+  void removeFromWatchList(int movieId) async {
+    try {
+      final isRemoved = await moviesRepository.removeFromWatchlist(movieId);
+      if (isRemoved > 0) {
+        final updatedWatchlist = List<Movie>.from(state.watchlist ?? [])
+          ..removeWhere((movie) => movie.id == movieId);
+        emit(state.copyWith(watchlist: updatedWatchlist));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(errorMessage: "Failed to remove movie from watchlist"),
+      );
+    }
+  }
+
+  void resetSearch() {
+    emit(state.copyWith(searchResults: null, isSearching: false));
   }
 }

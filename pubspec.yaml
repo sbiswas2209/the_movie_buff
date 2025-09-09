@@ -30,6 +30,7 @@ dependencies:
   jiffy: ^6.4.3
   cupertino_icons: ^1.0.8
   page_transition: ^2.2.1
+  marquee: ^2.3.0
 
 dev_dependencies:
   flutter_test:

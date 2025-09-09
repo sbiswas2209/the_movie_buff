@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:the_movie_buff/core/services/config_service.dart';
+import 'package:the_movie_buff/core/styles/themes.dart';
 import 'package:the_movie_buff/core/styles/typography.dart';
 import 'package:the_movie_buff/core/utils/extensions/text_style.dart';
 import 'package:the_movie_buff/data/remote/genre_item.dart';
@@ -125,6 +126,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(label: 'Home', icon: Icon(Icons.home)),
+          BottomNavigationBarItem(label: 'Watched', icon: Icon(Icons.bookmark)),
+        ],
+        onTap: (index) {
+          if (index == 1) {
+            context.push('/watched');
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'search_icon',
+        onPressed: () {
+          context.push('/search');
+        },
+        backgroundColor: kPrimaryColor,
+        child: const Icon(Icons.search, color: kOnPrimaryColor),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -135,7 +156,6 @@ class _HomePageState extends State<HomePage> {
         controller: _popularMoviesPageController,
         itemCount: movies.length,
         onPageChanged: (page) {
-          // Trigger pagination when approaching the end
           if (page >= movies.length - 2 &&
               !context.read<MoviesCubit>().state.isFetchingPopular &&
               !context.read<MoviesCubit>().state.hasReachedPopularMoviesMax) {

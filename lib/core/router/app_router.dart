@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:the_movie_buff/src/movies/views/details_page.dart';
 import 'package:the_movie_buff/src/movies/views/home_page.dart';
+import 'package:the_movie_buff/src/movies/views/search_page.dart';
+import 'package:the_movie_buff/src/movies/views/watched_movies.dart';
 
 class AppRouter {
   static GoRouter generateRoutes() {
@@ -13,6 +15,11 @@ class AppRouter {
             final id = int.tryParse(state.pathParameters["id"]!);
             return DetailsPage(id: id);
           },
+        ),
+        GoRoute(path: '/search', builder: (context, state) => SearchPage()),
+        GoRoute(
+          path: '/watched',
+          builder: (context, state) => WatchedMoviesPage(),
         ),
       ],
     );

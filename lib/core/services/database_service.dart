@@ -28,10 +28,13 @@ class DatabaseService {
       version: _databaseVersion,
       onCreate: (db, version) async {
         await db.execute(
-          Movie.createTable(MoviesRepositoryImpl.nowPlayingMoviesTable),
+          Movie.createTable(MoviesRepositoryImpl.popularMoviesTable),
         );
         await db.execute(
           Movie.createTable(MoviesRepositoryImpl.nowPlayingMoviesTable),
+        );
+        await db.execute(
+          Movie.createTable(MoviesRepositoryImpl.watchlistTable),
         );
       },
     );
