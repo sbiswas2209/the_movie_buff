@@ -1,0 +1,8 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build an Android App Bundle (AAB) for release"
+  lane :release_aab do
+    gradle(task: "clean bundleRelease")
+  end
+end

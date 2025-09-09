@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:marquee/marquee.dart';
@@ -90,6 +91,29 @@ class _DetailsPageState extends State<DetailsPage> {
               },
             ),
             centerTitle: true,
+            actions: [
+              IconButton(
+                onPressed: () {
+                  Clipboard.setData(
+                    ClipboardData(
+                      text:
+                          "Hey check this movie out: https://tmb.sagnik.dev/details/${widget.id}",
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Movie link copied to clipboard!',
+                        style: kParagraph1.withColor(kOnPrimaryColor),
+                      ),
+                      backgroundColor: kPrimaryColor,
+                    ),
+                  );
+                },
+                icon: Icon(Icons.share, color: kOnSecondaryColor),
+                iconSize: 16.sp,
+              ),
+            ],
           ),
           body: ListView(
             shrinkWrap: true,
