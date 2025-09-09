@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:the_movie_buff/core/services/config_service.dart';
 import 'package:the_movie_buff/core/styles/typography.dart';
 import 'package:the_movie_buff/core/utils/extensions/text_style.dart';
@@ -19,9 +20,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final PageController _popularMoviesPageController = PageController(
-    keepPage: true,
-  );
+  late final PageController _popularMoviesPageController;
 
   // Main scroll controller for the entire ListView
   final ScrollController _mainScrollController = ScrollController();
@@ -38,14 +37,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _setupListeners() {
+    if (!mounted) return;
     _mainScrollController.addListener(() {
-      if (mounted) {
-        final scrollPosition = _mainScrollController.position.pixels;
-        final maxScrollExtent = _mainScrollController.position.maxScrollExtent;
+      final scrollPosition = _mainScrollController.position.pixels;
+      final maxScrollExtent = _mainScrollController.position.maxScrollExtent;
 
-        if (scrollPosition >= (maxScrollExtent * 0.8)) {
-          _fetchNowPlayingMovies();
-        }
+      if (scrollPosition >= (maxScrollExtent * 0.8)) {
+        _fetchNowPlayingMovies();
       }
     });
   }
@@ -54,6 +52,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
+    _popularMoviesPageController = PageController(
+      keepPage: true,
+      viewportFraction: 1.sh > 1.sw ? 1.0 : 0.7,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_hasFetchedPopularMovies) {
         _hasFetchedPopularMovies = true;
@@ -147,7 +149,7 @@ class _HomePageState extends State<HomePage> {
             child: PopularMovieCard(
               title: movie.title,
               imagePath: movie.backdropPath,
-              onPressed: () {},
+              onPressed: () => context.push('/details/${movie.id}'),
               genres: movie.genreIds
                   .map<GenreItem>(
                     (e) => ConfigService.instance.genres.firstWhere(
@@ -170,13 +172,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNowPlayingGrid(List<Movie> movies, MoviesState state) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       child: GridView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+          crossAxisCount: screenHeight > screenWidth ? 2 : 4,
           childAspectRatio: 0.7,
           crossAxisSpacing: 8.w,
           mainAxisSpacing: 8.h,
@@ -194,6 +198,7 @@ class _HomePageState extends State<HomePage> {
             voteAverage: movie.voteAverage,
             posterPath: movie.posterPath,
             adult: movie.adult,
+            onPressed: () => context.push('/details/${movie.id}'),
           );
         },
       ),

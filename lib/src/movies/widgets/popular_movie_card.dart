@@ -52,111 +52,125 @@ class PopularMovieCard extends StatelessWidget {
       return _buildShimmer();
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.r),
-        color: kSecondaryColor,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            flex: 2,
-            child: Stack(
-              children: [
-                Container(
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.r),
-                    child: imagePath == null
-                        ? Assets.images.backdropPlaceholder.image(
-                            fit: BoxFit.fitHeight,
-                          )
-                        : CachedNetworkImage(
-                            fit: BoxFit.fitHeight,
-                            height: MediaQuery.of(context).size.height,
-                            imageUrl:
-                                "${ConfigService.instance.imageBaseUrl}${findNearestPosterSize(1.sw)}$imagePath",
-                            placeholder: (context, _) {
-                              return Shimmer(child: Container());
-                            },
-                            errorWidget: (context, _, __) {
-                              return Assets.images.backdropPlaceholder.image();
-                            },
-                          ),
-                  ),
-                ),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.r),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.7),
-                      ],
-                    ),
-                  ),
-                ),
-                if (adult)
-                  Positioned(
-                    top: 2.h,
-                    right: 2.w,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
-                      ),
-                      margin: EdgeInsets.all(8.r),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Text(
-                        "18+",
-                        style: kParagraph2.withColor(Colors.white).semiBold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Flexible(
-            flex: 1,
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.r),
+          color: kSecondaryColor,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              flex: 2,
+              child: Stack(
                 children: [
-                  Text(
-                    title,
-                    style: kHeading2.bold,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Container(
+                    width: double.maxFinite,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: imagePath == null
+                          ? Assets.images.backdropPlaceholder.image(
+                              fit: BoxFit.fitHeight,
+                            )
+                          : CachedNetworkImage(
+                              fit: BoxFit.fitHeight,
+                              height: MediaQuery.of(context).size.height,
+                              imageUrl:
+                                  "${ConfigService.instance.imageBaseUrl}${findNearestPosterSize(1.sw)}$imagePath",
+                              placeholder: (context, _) {
+                                return Shimmer(child: Container());
+                              },
+                              errorWidget: (context, _, __) {
+                                return Assets.images.backdropPlaceholder
+                                    .image();
+                              },
+                            ),
+                    ),
                   ),
-                  SizedBox(height: 4.h),
-                  _buildSecondaryRow(),
-                  SizedBox(height: 4.h),
-                  _buildTertiaryRow(),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.r),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (adult)
+                    Positioned(
+                      top: 2.h,
+                      right: 2.w,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 2.h,
+                        ),
+                        margin: EdgeInsets.all(8.r),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Text(
+                          "18+",
+                          style: kParagraph2.withColor(Colors.white).semiBold,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
-          ),
-        ],
+            Flexible(
+              flex: 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: kHeading2.bold,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4.h),
+                    _buildSecondaryRow(),
+                    SizedBox(height: 4.h),
+                    _buildTertiaryRow(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSecondaryRow() {
+    StringBuffer textBuffer = StringBuffer();
+
+    textBuffer.write(Jiffy.parse(releaseDate).fromNow());
+    textBuffer.write(" • ");
+    textBuffer.write(
+      [
+        ...genres.sublist(0, genres.length > 3 ? 3 : genres.length),
+        if (genres.length > 3) '+${genres.length - 3}',
+      ].join(", "),
+    );
     return Text(
-      "${Jiffy.parse(releaseDate).fromNow()} • ${[...genres.sublist(0, genres.length > 3 ? 3 : genres.length), if (genres.length > 3) '+${genres.length - 3}'].join(", ")}",
+      textBuffer.toString(),
       style: kParagraph2.withColor(kOnSecondaryColor).semiBold,
     );
   }

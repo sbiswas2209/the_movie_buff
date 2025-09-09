@@ -47,6 +47,7 @@ class Movie extends Equatable {
   Map<String, dynamic> toJson() => _$MovieToJson(this);
 
   static String createTable(String tableName) =>
+      // TODO: Fix genre_ids storage
       '''
     CREATE TABLE $tableName (
       id INTEGER PRIMARY KEY,

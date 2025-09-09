@@ -1,7 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:the_movie_buff/data/remote/movie.dart';
-import 'package:the_movie_buff/src/movies/cubit/movies_cubit.dart';
+import 'package:the_movie_buff/src/movies/cubit/movies_repository.dart';
 
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
 typedef ToMap<T> = Map<String, dynamic> Function(T object);
@@ -27,8 +27,12 @@ class DatabaseService {
       path,
       version: _databaseVersion,
       onCreate: (db, version) async {
-        await db.execute(Movie.createTable(MoviesCubit.popularMoviesTable));
-        await db.execute(Movie.createTable(MoviesCubit.nowPlayingMoviesTable));
+        await db.execute(
+          Movie.createTable(MoviesRepositoryImpl.nowPlayingMoviesTable),
+        );
+        await db.execute(
+          Movie.createTable(MoviesRepositoryImpl.nowPlayingMoviesTable),
+        );
       },
     );
   }

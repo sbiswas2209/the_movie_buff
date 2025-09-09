@@ -20,11 +20,11 @@ class _MoviesClient implements MoviesClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<PopularMoviesResponse> getPopularMovies({
-    required int page,
-    String language = 'en-US',
-    String region = 'US',
-  }) async {
+  Future<PopularMoviesResponse> getPopularMovies(
+    int page,
+    String language,
+    String region,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'page': page,
@@ -55,11 +55,11 @@ class _MoviesClient implements MoviesClient {
   }
 
   @override
-  Future<NowPlayingResponse> getNowPlayingMovies({
-    required int page,
-    String language = 'en-US',
+  Future<NowPlayingResponse> getNowPlayingMovies(
+    int page,
+    String language,
     String? region,
-  }) async {
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'page': page,
@@ -83,6 +83,33 @@ class _MoviesClient implements MoviesClient {
     late NowPlayingResponse _value;
     try {
       _value = NowPlayingResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<MovieDetail> getMovieDetails(int movieId, String language) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'language': language};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<MovieDetail>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/movie/${movieId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late MovieDetail _value;
+    try {
+      _value = MovieDetail.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

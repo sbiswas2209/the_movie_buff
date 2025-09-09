@@ -1,17 +1,14 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:the_movie_buff/core/services/database_service.dart';
 import 'package:the_movie_buff/data/remote/movie.dart';
+import 'package:the_movie_buff/data/remote/movie_detail.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_repository.dart';
 
 import 'movies_state.dart';
 
 class MoviesCubit extends Cubit<MoviesState> {
   final MoviesRepository moviesRepository;
-
-  static const popularMoviesTable = 'popular_movies';
-  static const nowPlayingMoviesTable = 'now_playing_movies';
 
   MoviesCubit(this.moviesRepository) : super(const MoviesState());
 
@@ -24,12 +21,7 @@ class MoviesCubit extends Cubit<MoviesState> {
 
     try {
       if (state.popularMoviesPage == 1) {
-        final cachedMovies = await DatabaseService.instance.selectAll<Movie>(
-          popularMoviesTable,
-          (json) => Movie.fromJson(json),
-          orderBy: 'popularity DESC, id DESC',
-          limit: 20,
-        );
+        final cachedMovies = await moviesRepository.getCachedPopularMovies();
 
         if (cachedMovies.isNotEmpty) {
           emit(
@@ -56,11 +48,7 @@ class MoviesCubit extends Cubit<MoviesState> {
       final hasReachedMax = response.page >= response.totalPages;
 
       for (Movie movie in newMovies) {
-        await DatabaseService.instance.insert<Movie>(
-          popularMoviesTable,
-          movie,
-          (e) => e.toJson(),
-        );
+        moviesRepository.addPopularMovieToCache(movie);
       }
 
       emit(
@@ -91,12 +79,7 @@ class MoviesCubit extends Cubit<MoviesState> {
 
     try {
       if (state.nowPlayingMoviesPage == 1) {
-        final cachedMovies = await DatabaseService.instance.selectAll<Movie>(
-          nowPlayingMoviesTable,
-          (json) => Movie.fromJson(json),
-          orderBy: 'popularity DESC, id DESC',
-          limit: 20,
-        );
+        final cachedMovies = await moviesRepository.getCachedNowPlayingMovies();
 
         if (cachedMovies.isNotEmpty) {
           emit(
@@ -128,11 +111,7 @@ class MoviesCubit extends Cubit<MoviesState> {
       final hasReachedMax = response.page >= response.totalPages;
 
       for (Movie movie in newMovies) {
-        await DatabaseService.instance.insert<Movie>(
-          nowPlayingMoviesTable,
-          movie,
-          (e) => e.toJson(),
-        );
+        moviesRepository.addNowPlayingMovieToCache(movie);
       }
 
       emit(
@@ -155,7 +134,7 @@ class MoviesCubit extends Cubit<MoviesState> {
   }
 
   Future<void> refreshPopularMovies() async {
-    await DatabaseService.instance.deleteAll(popularMoviesTable);
+    await moviesRepository.deletePopularMoviesCache();
 
     emit(
       state.copyWith(
@@ -170,7 +149,7 @@ class MoviesCubit extends Cubit<MoviesState> {
   }
 
   Future<void> refreshNowPlayingMovies() async {
-    await DatabaseService.instance.deleteAll(nowPlayingMoviesTable);
+    await moviesRepository.deleteNowPlayingMoviesCache();
 
     emit(
       state.copyWith(
@@ -190,5 +169,18 @@ class MoviesCubit extends Cubit<MoviesState> {
 
   void clearError() {
     emit(state.copyWith(errorMessage: ''));
+  }
+
+  Future<(bool, MovieDetail?)> fetchMovieDetails(int? movieId) async {
+    try {
+      if (movieId == null) {
+        emit(state.copyWith(errorMessage: "Invalid movie ID"));
+        return (false, null);
+      }
+      return await moviesRepository.getMovieDetails(movieId);
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Failed to fetch movie details"));
+      return (false, null);
+    }
   }
 }
