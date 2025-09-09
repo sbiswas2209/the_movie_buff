@@ -9,15 +9,15 @@ const TextStyle _baseStyle = TextStyle(
 
 TextStyle get kBaseTypography => _baseStyle;
 
-TextStyle get kHeading1 => _baseStyle.withFontSize(20.sp);
+TextStyle get kHeading1 => _baseStyle.withFontSize(20.sp).bold;
 
-TextStyle get kHeading2 => _baseStyle.withFontSize(18.sp);
+TextStyle get kHeading2 => _baseStyle.withFontSize(18.sp).bold;
 
-TextStyle get kHeading3 => _baseStyle.withFontSize(16.sp);
+TextStyle get kHeading3 => _baseStyle.withFontSize(16.sp).bold;
 
-TextStyle get kHeading4 => _baseStyle.withFontSize(14.sp);
+TextStyle get kHeading4 => _baseStyle.withFontSize(14.sp).bold;
 
-TextStyle get kHeading6 => _baseStyle.withFontSize(12.sp);
+TextStyle get kHeading6 => _baseStyle.withFontSize(12.sp).bold;
 
 TextStyle get kParagraph1 => _baseStyle.withFontSize(12.sp);
 

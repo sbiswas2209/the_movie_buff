@@ -10,7 +10,7 @@ part 'movie_detail.g.dart';
 class MovieDetail {
   final bool adult;
   final String? backdropPath;
-  final String? belongsToCollection;
+  final Map<String, dynamic>? belongsToCollection;
   final int budget;
   final List<GenreItem> genres;
   final String homepage;

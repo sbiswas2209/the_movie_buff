@@ -125,7 +125,7 @@ class NowPlayingCard extends StatelessWidget {
                   title,
                   style: kHeading4.bold,
                   maxLines: 1,
-                  overflow: TextOverflow.fade,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,

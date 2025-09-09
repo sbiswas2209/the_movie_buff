@@ -1,7 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:the_movie_buff/core/services/database_service.dart';
 import 'package:the_movie_buff/core/utils/dio_client.dart';
 import 'package:the_movie_buff/data/remote/movie.dart';
+import 'package:the_movie_buff/data/remote/movie_cast.dart';
 import 'package:the_movie_buff/data/remote/movie_detail.dart';
+import 'package:the_movie_buff/data/remote/movie_watch_providers.dart';
 import 'package:the_movie_buff/data/remote/now_playing_response.dart';
 import 'package:the_movie_buff/data/remote/popular_movies_response.dart';
 import 'package:the_movie_buff/network/api/movies/movies_client.dart';
@@ -31,16 +34,34 @@ abstract class MoviesRepository {
 
   Future<int> deleteNowPlayingMoviesCache();
 
-  Future<(bool, MovieDetail)> getMovieDetails(
+  Future<(bool, MovieDetail?)> getMovieDetails(
     int movieId, {
     String language = 'en-US',
   });
+
+  Future<List<Movie>> getSearchMovies(
+    String query,
+    int page, {
+    String language = 'en-US',
+    bool includeAdult = false,
+  });
+
+  Future<MovieWatchProviders> getWatchProviders(int movieId);
+
+  Future<MovieCastResponse> getCast(int movieId);
+
+  Future<List<Movie>> getWatchlist();
+
+  Future<int> addToWatchlist(Movie movie);
+
+  Future<int> removeFromWatchlist(int movieId);
 }
 
 class MoviesRepositoryImpl implements MoviesRepository {
   late final MoviesClient moviesClient;
   static const popularMoviesTable = 'popular_movies';
   static const nowPlayingMoviesTable = 'now_playing_movies';
+  static const watchlistTable = 'watchlist';
 
   MoviesRepositoryImpl() {
     moviesClient = MoviesClient(dioClient);
@@ -125,13 +146,13 @@ class MoviesRepositoryImpl implements MoviesRepository {
   }
 
   @override
-  Future<(bool, MovieDetail)> getMovieDetails(
+  Future<(bool, MovieDetail?)> getMovieDetails(
     int movieId, {
     String language = 'en-US',
   }) async {
     try {
       return (true, await moviesClient.getMovieDetails(movieId, language));
-    } catch (e) {
+    } on DioException catch (e) {
       Movie? cachedMovie = await getMovieFromCachedDB(
         movieId,
         popularMoviesTable,
@@ -172,8 +193,10 @@ class MoviesRepositoryImpl implements MoviesRepository {
           ),
         );
       } else {
-        rethrow;
+        return (false, null);
       }
+    } catch (_) {
+      rethrow;
     }
   }
 
@@ -181,5 +204,73 @@ class MoviesRepositoryImpl implements MoviesRepository {
     return (await DatabaseService.instance.selectWhere(tableName, 'id = ?', [
       movieId,
     ], (json) => Movie.fromJson(json))).firstOrNull;
+  }
+
+  @override
+  Future<List<Movie>> getSearchMovies(
+    String query,
+    int page, {
+    String language = 'en-US',
+    bool includeAdult = false,
+  }) async {
+    try {
+      final response = await moviesClient.getSearchMovies(
+        query,
+        page,
+        language,
+        includeAdult,
+      );
+      return response.results;
+    } on DioException catch (_) {
+      return [];
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<MovieWatchProviders> getWatchProviders(int movieId) async {
+    try {
+      return await moviesClient.getMovieWatchProviders(movieId);
+    } on DioException catch (_) {
+      return MovieWatchProviders(results: {}, id: movieId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<MovieCastResponse> getCast(int movieId) async {
+    try {
+      return await moviesClient.getMovieCredits(movieId);
+    } on DioException catch (_) {
+      return MovieCastResponse(cast: [], id: movieId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Movie>> getWatchlist() async {
+    return await DatabaseService.instance.selectAll<Movie>(
+      watchlistTable,
+      (json) => Movie.fromJson(json),
+    );
+  }
+
+  @override
+  Future<int> addToWatchlist(Movie movie) async {
+    return await DatabaseService.instance.insert<Movie>(
+      watchlistTable,
+      movie,
+      (e) => e.toJson(),
+    );
+  }
+
+  @override
+  Future<int> removeFromWatchlist(int movieId) async {
+    return await DatabaseService.instance.delete(watchlistTable, 'id = ?', [
+      movieId,
+    ]);
   }
 }

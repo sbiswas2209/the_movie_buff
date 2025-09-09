@@ -1,0 +1,55 @@
+name: Android Release Build
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    name: Build Android AAB & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.2'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install fastlane
+        run: gem install fastlane
+
+      - name: Build AAB with Fastlane
+        run: fastlane release_aab
+
+      - name: Find generated AAB
+        id: upload
+        run: echo "AAB_PATH=$(find $GITHUB_WORKSPACE/app/build/outputs/bundle/release/*.aab)" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Android Release (${{ github.sha }})
+          tag_name: release-${{ github.sha }}
+          files: ${{ env.AAB_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

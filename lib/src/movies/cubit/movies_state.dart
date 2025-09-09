@@ -14,6 +14,9 @@ abstract class MoviesState with _$MoviesState {
     @Default(false) bool hasReachedNowPlayingMoviesMax,
     @Default(false) bool isFetchingPopular,
     @Default(false) bool isFetchingNowPlaying,
+    @Default(null) List<Movie>? searchResults,
+    @Default(false) bool isSearching,
     @Default('') String errorMessage,
+    @Default(null) List<Movie>? watchlist,
   }) = _MoviesState;
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:the_movie_buff/data/remote/movie_detail.dart';
 
 part 'movie.g.dart';
 
@@ -43,6 +44,23 @@ class Movie extends Equatable {
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) => _$MovieFromJson(json);
+
+  factory Movie.fromMovieDetail(MovieDetail detail) => Movie(
+    adult: detail.adult,
+    backdropPath: detail.backdropPath,
+    genreIds: detail.genres.map((g) => g.id).toList(),
+    id: detail.id,
+    originalLanguage: "",
+    originalTitle: "",
+    overview: detail.overview,
+    popularity: detail.popularity,
+    posterPath: detail.posterPath,
+    releaseDate: detail.releaseDate,
+    title: detail.title,
+    video: detail.video,
+    voteAverage: detail.voteAverage,
+    voteCount: detail.voteCount,
+  );
 
   Map<String, dynamic> toJson() => _$MovieToJson(this);
 

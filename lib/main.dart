@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:the_movie_buff/core/router/app_router.dart';
 import 'package:the_movie_buff/core/services/config_service.dart';
 import 'package:the_movie_buff/core/services/database_service.dart';
+import 'package:the_movie_buff/core/styles/themes.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_cubit.dart';
 import 'package:the_movie_buff/src/movies/cubit/movies_repository.dart';
 
@@ -35,7 +36,7 @@ class TheMovieBuffApp extends StatelessWidget {
           title: 'The Movie Buff',
           themeMode: ThemeMode.system,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            colorScheme: ColorScheme.fromSeed(seedColor: kPrimaryColor),
             scaffoldBackgroundColor: const Color(0XFF0B0D0E),
             appBarTheme: AppBarTheme(
               backgroundColor: const Color(0XFF0B0D0E),
@@ -48,6 +49,13 @@ class TheMovieBuffApp extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Quicksand',
               ),
+            ),
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: kSecondaryColor,
+              selectedIconTheme: IconThemeData(color: kPrimaryColor),
+              showSelectedLabels: true,
+              showUnselectedLabels: false,
+              unselectedIconTheme: IconThemeData(color: kOnSecondaryColor),
             ),
             fontFamily: 'Quicksand',
           ),

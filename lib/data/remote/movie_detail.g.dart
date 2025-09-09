@@ -9,7 +9,7 @@ part of 'movie_detail.dart';
 MovieDetail _$MovieDetailFromJson(Map<String, dynamic> json) => MovieDetail(
   adult: json['adult'] as bool,
   backdropPath: json['backdrop_path'] as String?,
-  belongsToCollection: json['belongs_to_collection'] as String?,
+  belongsToCollection: json['belongs_to_collection'] as Map<String, dynamic>?,
   budget: (json['budget'] as num).toInt(),
   genres: (json['genres'] as List<dynamic>)
       .map((e) => GenreItem.fromJson(e as Map<String, dynamic>))
